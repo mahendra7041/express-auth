@@ -145,7 +145,7 @@ class AuthController implements IController {
         throw new UnAuthorizedException();
       }
 
-      await AuthService.sendEmailVerificationNotification(req.user.email);
+      await AuthService.sendEmailVerificationNotification(req.user);
 
       res.json({
         message: "Your email verification link has been sent",
