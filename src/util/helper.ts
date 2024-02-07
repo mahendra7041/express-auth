@@ -21,8 +21,10 @@ export function temporarySignedRoute(
   expiredAt: Date,
   queryParams?: { [kye: string]: string | number | boolean }
 ): string {
-  console.log(process.env.APP_KEY);
-  const hmac = crypto.createHmac("sha256", "secret");
+  const hmac = crypto.createHmac(
+    "sha256",
+    process.env.APP_KEY ? process.env.APP_KEY : "secret"
+  );
   let url = `${basePath}?expires=${new Date(expiredAt).getTime()}`;
   if (queryParams) {
     const query = qs.stringify(queryParams);

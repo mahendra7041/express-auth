@@ -2,6 +2,7 @@ import { User } from "@prisma/client";
 import { emailVerificationNotification } from "../mails/email-verification-notification";
 import { MailTransporter, temporarySignedRoute } from "../util/helper";
 import crypto from "crypto";
+import { emailVerificationConfig } from "../config/email-verification.config";
 
 export class AuthService {
   public static async sendEmailVerificationNotification(
@@ -10,8 +11,16 @@ export class AuthService {
     const hash = crypto.createHash("sha1").update(data.email).digest("hex");
 
     const link = temporarySignedRoute(
-      `${process.env.APP_URL}/auth/verify-email/${data.id}/${hash}`,
-      new Date(Date.now() + 10 * 60 * 1000)
+      emailVerificationConfig.emailVerificationLinkBasePath(data.id, hash),
+      new Date(
+        Date.now() + emailVerificationConfig.emailVerificationLinkExpiryInMS
+      ),
+      {
+        successRedirect:
+          emailVerificationConfig.emailVerificationSuccessRedirectUrl,
+        failedRedirect:
+          emailVerificationConfig.emailVerificationFailedRedirectUrl,
+      }
     );
 
     return await MailTransporter.sendMail({

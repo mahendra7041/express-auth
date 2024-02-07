@@ -11,6 +11,7 @@ import { excludeFields } from "../../util/helper";
 import bcrypt from "bcryptjs";
 import { UnAuthorizedException } from "../../exception/unauthorized.exception";
 import { AuthService } from "../../service/auth.service";
+import { signedRouteVerify } from "../../middleware/signed-route-verify.middleware";
 
 class AuthController implements IController {
   public readonly router: Router;
@@ -30,7 +31,11 @@ class AuthController implements IController {
       "/email/verification-notification",
       this.sendEmailVerificationNotification
     );
-    this.router.get("/verify-email/:id/:hash", this.verifyEmail);
+    this.router.get(
+      "/verify-email/:id/:hash",
+      signedRouteVerify,
+      this.verifyEmail
+    );
   }
 
   async register(req: Request, res: Response, next: NextFunction) {
@@ -80,7 +85,6 @@ class AuthController implements IController {
   }
 
   async login(req: Request, res: Response, next: NextFunction) {
-    console.log("dklsjf");
     try {
       validate<{ username: string; password: string }>(req.body, {
         username: "required|email",
@@ -159,7 +163,22 @@ class AuthController implements IController {
     }
   }
 
-  async verifyEmail(req: Request, res: Response, next: NextFunction) {}
+  async verifyEmail(req: Request, res: Response, next: NextFunction) {
+    try {
+      await prisma.user.update({
+        where: {
+          id: 5,
+        },
+        data: {
+          email_verified_at: new Date(),
+        },
+      });
+
+      res.redirect(`${req.query.successRedirect}`);
+    } catch (error) {
+      next(error);
+    }
+  }
 
   user(req: Request, res: Response, next: NextFunction) {
     try {
