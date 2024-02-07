@@ -1,4 +1,4 @@
-import express, { Errback, Express } from "express";
+import express, { Express } from "express";
 import { createServer, Server as HTTPServer } from "http";
 import cors from "cors";
 import helmet from "helmet";
@@ -7,6 +7,7 @@ import { ValidationException } from "./exception/validation.exception";
 import { HttpException } from "./exception/http.exception";
 import passport from "passport";
 import session from "express-session";
+import { globalExceptionHandler } from "./exception/global.exception";
 
 export class Server {
   private httpServer: HTTPServer;
@@ -51,6 +52,7 @@ export class Server {
 
     this.app.use(ValidationException.handler);
     this.app.use(HttpException.handler);
+    this.app.use(globalExceptionHandler);
   }
 
   public listen(callback: (port: number) => void): void {
