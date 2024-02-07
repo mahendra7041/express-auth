@@ -12,6 +12,7 @@ import bcrypt from "bcryptjs";
 import { UnAuthorizedException } from "../../exception/unauthorized.exception";
 import { AuthService } from "../../service/auth.service";
 import { signedRouteVerify } from "../../middleware/signed-route-verify.middleware";
+import { auth } from "../../middleware/auth.middleware";
 
 class AuthController implements IController {
   public readonly router: Router;
@@ -29,11 +30,13 @@ class AuthController implements IController {
     this.router.delete("/logout", this.logout);
     this.router.post(
       "/email/verification-notification",
+      auth,
       this.sendEmailVerificationNotification
     );
     this.router.get(
       "/verify-email/:id/:hash",
       signedRouteVerify,
+      auth,
       this.verifyEmail
     );
   }
