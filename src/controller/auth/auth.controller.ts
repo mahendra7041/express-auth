@@ -23,8 +23,10 @@ import crypto from "crypto";
 class AuthController implements IController {
   public readonly router: Router;
   public readonly prefix: string = "/auth";
+  public readonly authService: AuthService;
 
   constructor() {
+    this.authService = new AuthService();
     this.router = express.Router();
     this.initializeRouter();
   }
@@ -37,7 +39,7 @@ class AuthController implements IController {
     this.router.post(
       "/email/verification-notification",
       auth,
-      this.sendEmailVerificationNotification
+      this.sendEmailVerificationNotification.bind(this)
     );
     this.router.get(
       "/verify-email/:id/:hash",
@@ -45,6 +47,7 @@ class AuthController implements IController {
       signedRouteVerify,
       this.verifyEmail
     );
+    this.router.post("/forgot-password", this.forgotPassword.bind(this));
   }
 
   async register(req: Request, res: Response, next: NextFunction) {
@@ -149,13 +152,14 @@ class AuthController implements IController {
     next: NextFunction
   ) {
     try {
-      await AuthService.sendEmailVerificationNotification(req.user!);
+      await this.authService.sendEmailVerificationNotification(req.user!);
 
       res.json({
         message: "Your email verification link has been sent",
         statusCode: HttpStatus.OK,
       });
     } catch (error) {
+      console.log(error);
       res.status(HttpStatus.BAD_GATEWAY).json({
         message: "Bad Gateway",
         statusCode: HttpStatus.BAD_GATEWAY,
@@ -205,6 +209,23 @@ class AuthController implements IController {
       ) {
         return res.redirect(`${req.query.failedRedirect}?error=bad_request`);
       }
+      next(error);
+    }
+  }
+
+  async forgotPassword(req: Request, res: Response, next: NextFunction) {
+    try {
+      const validated = validate<{ email: string }>(req.body, {
+        email: "required|email",
+      });
+
+      await this.authService.forgotPassword(validated.email);
+
+      return res.status(HttpStatus.OK).json({
+        message: "password reset link has been sent",
+        statusCode: HttpStatus.OK,
+      });
+    } catch (error) {
       next(error);
     }
   }

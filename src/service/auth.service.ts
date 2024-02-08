@@ -3,11 +3,15 @@ import { emailVerificationNotification } from "../mails/email-verification-notif
 import { MailTransporter, temporarySignedRoute } from "../util/helper";
 import crypto from "crypto";
 import { emailVerificationConfig } from "../config/email-verification.config";
+import { PasswordResetService } from "./password-reset.service";
 
 export class AuthService {
-  public static async sendEmailVerificationNotification(
-    data: Omit<User, "password">
-  ) {
+  private readonly passwordResetService: PasswordResetService;
+
+  constructor() {
+    this.passwordResetService = new PasswordResetService();
+  }
+  public async sendEmailVerificationNotification(data: Omit<User, "password">) {
     const hash = crypto.createHash("sha1").update(data.email).digest("hex");
 
     const link = temporarySignedRoute(
@@ -35,5 +39,9 @@ export class AuthService {
           : "My Company",
       }),
     });
+  }
+
+  public async forgotPassword(email: string) {
+    return await this.passwordResetService.sendPasswordResetLink(email);
   }
 }
