@@ -81,7 +81,10 @@ class AuthController implements IController {
         });
       });
     } catch (error) {
-      if (error instanceof PrismaClientKnownRequestError) {
+      if (
+        error instanceof PrismaClientKnownRequestError &&
+        error.code === "P2002"
+      ) {
         return res.status(422).json({
           message: "Validation Exception",
           errors: {
@@ -196,6 +199,12 @@ class AuthController implements IController {
 
       return res.redirect(`${req.query.successRedirect}?verified=1`);
     } catch (error) {
+      if (
+        error instanceof PrismaClientKnownRequestError &&
+        error.code === "P2025"
+      ) {
+        return res.redirect(`${req.query.failedRedirect}?error=bad_request`);
+      }
       next(error);
     }
   }
