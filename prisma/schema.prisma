@@ -20,3 +20,9 @@ model User {
   created_at        DateTime  @default(now())
   updated_at        DateTime? @updatedAt
 }
+
+model PasswordResetToken {
+  email      String   @unique @db.VarChar(255)
+  token      String   @db.VarChar(255)
+  created_at DateTime @default(now())
+}
