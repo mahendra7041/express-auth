@@ -19,10 +19,14 @@ model User {
   remember_token    String?   @db.VarChar(100)
   created_at        DateTime  @default(now())
   updated_at        DateTime? @updatedAt
+
+  @@map("users")
 }
 
 model PasswordResetToken {
   email      String   @unique @db.VarChar(255)
   token      String   @db.VarChar(255)
   created_at DateTime @default(now())
+
+  @@map("password_reset_token")
 }
