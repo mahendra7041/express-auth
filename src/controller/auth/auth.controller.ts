@@ -24,7 +24,7 @@ class AuthController implements IController {
   }
 
   private initializeRouter() {
-    this.router.post("/user", this.user);
+    this.router.post("/user", auth, this.user);
     this.router.post("/register", this.register);
     this.router.post("/login", this.login);
     this.router.delete("/logout", this.logout);
@@ -134,14 +134,6 @@ class AuthController implements IController {
     }
   }
 
-  logout(req: Request, res: Response) {
-    req.logout(() => {
-      req.session.destroy(function () {});
-    });
-
-    res.status(HttpStatus.NO_CONTENT).json({});
-  }
-
   async sendEmailVerificationNotification(
     req: Request,
     res: Response,
@@ -183,15 +175,15 @@ class AuthController implements IController {
     }
   }
 
-  user(req: Request, res: Response, next: NextFunction) {
-    try {
-      if (req.isUnauthenticated()) {
-        throw new UnAuthorizedException();
-      }
-      return res.json(req.user);
-    } catch (error) {
-      next(error);
-    }
+  user(req: Request, res: Response) {
+    return res.json(req.user);
+  }
+
+  logout(req: Request, res: Response) {
+    req.logout(() => {
+      req.session.destroy(function () {});
+    });
+    res.status(HttpStatus.NO_CONTENT).json({});
   }
 }
 
