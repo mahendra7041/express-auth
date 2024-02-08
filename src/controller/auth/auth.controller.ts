@@ -1,4 +1,10 @@
-import express, { NextFunction, Request, Response, Router } from "express";
+import express, {
+  NextFunction,
+  Request,
+  Response,
+  Router,
+  query,
+} from "express";
 import { IController } from "../../constraints/controller";
 import { validate } from "../../util/validate";
 import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
@@ -9,10 +15,10 @@ import { HttpStatus } from "../../constraints/http-status.enum";
 import { prisma } from "../../prisma/prisma.service";
 import { excludeFields } from "../../util/helper";
 import bcrypt from "bcryptjs";
-import { UnAuthorizedException } from "../../exception/unauthorized.exception";
 import { AuthService } from "../../service/auth.service";
 import { signedRouteVerify } from "../../middleware/signed-route-verify.middleware";
 import { auth } from "../../middleware/auth.middleware";
+import crypto from "crypto";
 
 class AuthController implements IController {
   public readonly router: Router;
@@ -156,6 +162,29 @@ class AuthController implements IController {
 
   async verifyEmail(req: Request, res: Response, next: NextFunction) {
     try {
+      const user = await prisma.user.findUniqueOrThrow({
+        where: {
+          id: +req.params.id!,
+        },
+        select: {
+          email: true,
+          email_verified_at: true,
+        },
+      });
+
+      const emailHash = crypto
+        .createHash("sha1")
+        .update(user.email)
+        .digest("hex");
+
+      if (req.params.hash !== emailHash) {
+        return res.redirect(`${req.query.failedRedirect}?error=bad_request`);
+      }
+
+      if (!!user.email_verified_at) {
+        return res.redirect(`${req.query.successRedirect}?verified=1`);
+      }
+
       await prisma.user.update({
         where: {
           id: +req.params.id,
@@ -165,7 +194,7 @@ class AuthController implements IController {
         },
       });
 
-      res.redirect(`${req.query.successRedirect}`);
+      return res.redirect(`${req.query.successRedirect}?verified=1`);
     } catch (error) {
       next(error);
     }
