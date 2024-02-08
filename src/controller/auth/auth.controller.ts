@@ -35,8 +35,8 @@ class AuthController implements IController {
     );
     this.router.get(
       "/verify-email/:id/:hash",
-      signedRouteVerify,
       auth,
+      signedRouteVerify,
       this.verifyEmail
     );
   }
@@ -140,11 +140,7 @@ class AuthController implements IController {
     next: NextFunction
   ) {
     try {
-      if (req.isUnauthenticated() || !req.user) {
-        throw new UnAuthorizedException();
-      }
-
-      await AuthService.sendEmailVerificationNotification(req.user);
+      await AuthService.sendEmailVerificationNotification(req.user!);
 
       res.json({
         message: "Your email verification link has been sent",
@@ -162,7 +158,7 @@ class AuthController implements IController {
     try {
       await prisma.user.update({
         where: {
-          id: 5,
+          id: +req.params.id,
         },
         data: {
           email_verified_at: new Date(),

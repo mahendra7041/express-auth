@@ -1,9 +1,9 @@
 import Validator from "validatorjs";
 import { ValidationException } from "../exception/validation.exception";
 
-export function validate<T extends { [key: string]: any }>(
+export function validate<T extends {}>(
   body: T,
-  rules: Validator.Rules,
+  rules: Record<keyof T, string>,
   customMessages: Validator.ErrorMessages = {}
 ): T {
   const validator = new Validator(body, rules, customMessages);
@@ -11,7 +11,7 @@ export function validate<T extends { [key: string]: any }>(
   if (validator.fails()) {
     throw new ValidationException("Validation Exception", validator.errors);
   }
-  const whiteListKeys: string[] = Object.keys(rules);
+  const whiteListKeys = <(keyof T)[]>Object.keys(rules);
 
   const whitelistObject: T = {} as T;
 
