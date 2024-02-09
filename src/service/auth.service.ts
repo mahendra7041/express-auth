@@ -4,14 +4,17 @@ import { MailTransporter, temporarySignedRoute } from "../util/helper";
 import crypto from "crypto";
 import { emailVerificationConfig } from "../config/email-verification.config";
 import { PasswordResetService } from "./password-reset.service";
-
+import bcrypt from "bcryptjs";
+import { prisma } from "../prisma/prisma.service";
+import { HttpException } from "../exception/http.exception";
+import { BadRequest } from "../exception/bad-request.exception";
 export class AuthService {
   private readonly passwordResetService: PasswordResetService;
 
   constructor() {
     this.passwordResetService = new PasswordResetService();
   }
-  public async sendEmailVerificationNotification(data: Omit<User, "password">) {
+  async sendEmailVerificationNotification(data: Omit<User, "password">) {
     const hash = crypto.createHash("sha1").update(data.email).digest("hex");
 
     const link = temporarySignedRoute(
@@ -41,7 +44,43 @@ export class AuthService {
     });
   }
 
-  public async forgotPassword(email: string) {
+  async forgotPassword(email: string) {
     return await this.passwordResetService.sendPasswordResetLink(email);
+  }
+
+  async resetPassword(data: {
+    token: string;
+    password: string;
+    email: string;
+  }) {
+    const passwordResetToken = await prisma.passwordResetToken.findUnique({
+      where: {
+        email: data.email,
+      },
+    });
+
+    if (
+      !passwordResetToken ||
+      !bcrypt.compareSync(data.token, passwordResetToken.token)
+    ) {
+      throw new BadRequest();
+    }
+
+    const password = bcrypt.hashSync(data.password, bcrypt.genSaltSync(10));
+
+    await prisma.user.update({
+      where: {
+        email: data.email,
+      },
+      data: {
+        password,
+      },
+    });
+
+    return await prisma.passwordResetToken.delete({
+      where: {
+        email: data.email,
+      },
+    });
   }
 }

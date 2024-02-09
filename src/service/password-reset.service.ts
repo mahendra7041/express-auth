@@ -8,9 +8,6 @@ import { passwordResetLinkNotification } from "../mails/password-reset-link-noti
 import { passwordResetConfig } from "../config/password-reset.config";
 
 export class PasswordResetService {
-  private readonly expiredIn =
-    passwordResetConfig.passwordResetLinkExpireInMinute * 60 * 1000;
-
   public async sendPasswordResetLink(email: string) {
     const user = await this.validateEmail(email);
 
@@ -20,7 +17,7 @@ export class PasswordResetService {
 
     await this.deletePreviousToken(email);
     const token = await this.createToken(email);
-    const link = passwordResetConfig.passwordResetLinkFrontendUrl(token);
+    const link = passwordResetConfig.passwordResetLinkFrontendUrl(token, email);
     return await this.sendPasswordResetLinkEmail(email, link, user.name);
   }
 

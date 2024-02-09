@@ -48,6 +48,7 @@ class AuthController implements IController {
       this.verifyEmail
     );
     this.router.post("/forgot-password", this.forgotPassword.bind(this));
+    this.router.post("/reset-password", this.resetPassword.bind(this));
   }
 
   async register(req: Request, res: Response, next: NextFunction) {
@@ -223,6 +224,28 @@ class AuthController implements IController {
 
       return res.status(HttpStatus.OK).json({
         message: "password reset link has been sent",
+        statusCode: HttpStatus.OK,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async resetPassword(req: Request, res: Response, next: NextFunction) {
+    try {
+      const validated = validate(
+        <{ email: string; password: string; token: string }>req.body,
+        {
+          token: "required|string",
+          email: "required|email",
+          password: "required|confirmed|min:8",
+        }
+      );
+
+      await this.authService.resetPassword(validated);
+
+      res.status(HttpStatus.OK).json({
+        message: "Your password has been reset successfully",
         statusCode: HttpStatus.OK,
       });
     } catch (error) {
