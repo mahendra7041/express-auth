@@ -79,9 +79,9 @@ class AuthController implements IController {
           );
         }
 
-        return res.status(201).json({
+        return res.status(HttpStatus.CREATED).json({
           message: "User signup successfully",
-          statusCode: 201,
+          statusCode: HttpStatus.CREATED,
         });
       });
     } catch (error) {
@@ -89,7 +89,7 @@ class AuthController implements IController {
         error instanceof PrismaClientKnownRequestError &&
         error.code === "P2002"
       ) {
-        return res.status(422).json({
+        return res.status(HttpStatus.UNPROCESSABLE_ENTITY).json({
           message: "Validation Exception",
           errors: {
             email: ["Email address has already been taken"],
@@ -114,30 +114,30 @@ class AuthController implements IController {
             error instanceof PrismaClientKnownRequestError ||
             error === true
           ) {
-            return res.status(404).json({
+            return res.status(HttpStatus.UNAUTHORIZED).json({
               message: "invalid credential",
-              statusCode: 404,
+              statusCode: HttpStatus.UNAUTHORIZED,
             });
           }
 
           if (error) {
-            return res.status(500).json({
+            return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
               message: "Internal Server Error",
-              statusCode: 500,
+              statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
             });
           }
 
           req.logIn(user, (err) => {
             if (err) {
-              return res.status(500).json({
+              return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
                 message: "Internal Server Error",
-                statusCode: 500,
+                statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
               });
             }
 
-            return res.status(200).json({
+            return res.status(HttpStatus.OK).json({
               message: "User login successfully",
-              statusCode: 200,
+              statusCode: HttpStatus.OK,
             });
           });
         }

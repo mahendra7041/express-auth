@@ -3,7 +3,6 @@ import { prisma } from "../../prisma/prisma.service";
 import { excludeFields } from "../../util/helper";
 import { Strategy as LocalStrategy } from "passport-local";
 import bcrypt from "bcryptjs";
-import { User as UserModelType } from "@prisma/client";
 
 passport.serializeUser(function (user: Express.User, done) {
   done(null, user.id);
